@@ -1,16 +1,16 @@
 const CACHE_NAME = 'dictionary-cache-v1';
 const urlsToCache = [
-  './faithbornedictionary.html',
-  '../pics/1.jpg',
-  '../pics/2.jpg',
-  '../pics/3.jpg',
-  '../pics/4.jpg',
-  '../pics/5.jpg',
-  '../pics/6.jpg',
-  '../pics/7.jpg',
-  '../pics/8.jpg',
-  '../pics/9.jpg',
-  '../pics/10.jpg'
+  '/Faithbornedictionary/DICTIONARY/faithborne-dictionary/faithbornedictionary.html',
+  '/Faithbornedictionary/DICTIONARY/pics/1.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/2.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/3.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/4.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/5.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/6.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/7.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/8.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/9.jpg',
+  '/Faithbornedictionary/DICTIONARY/pics/10.jpg'
 ];
 
 // Install event
