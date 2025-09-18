@@ -1,0 +1,87 @@
+body {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    font-family: 'Arial', sans-serif;
+}
+
+header {
+    background-color: #34495e;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+nav button {
+    background-color: #2980b9;
+    color: white;
+}
+
+nav button:hover {
+    background-color: #3498db;
+}
+
+main {
+    background-color: #34495e;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+input, button {
+    border: 1px solid #ecf0f1;
+}
+
+button.addBtn {
+    background-color: #27ae60;
+}
+
+button.addBtn:hover {
+    background-color: #2ecc71;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ecf0f1;
+}
+
+th {
+    background-color: #2980b9;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #34495e;
+}
+
+tr.highlight {
+    background-color: #f39c12;
+}
+
+.word-card, .meaning-card {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+}
+
+button.editBtn {
+    background-color: #3498db;
+}
+
+button.editBtn:hover {
+    background-color: #2980b9;
+}
+
+button.deleteBtn {
+    background-color: #e74c3c;
+}
+
+button.deleteBtn:hover {
+    background-color: #c0392b;
+}
+
+.hidden {
+    display: none;
+}

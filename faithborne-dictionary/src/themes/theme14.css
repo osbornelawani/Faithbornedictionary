@@ -1,0 +1,74 @@
+body {
+    background-color: #f0e68c;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+}
+
+header {
+    background-color: #f9c74f;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+nav button {
+    background-color: #f9844a;
+}
+
+nav button:hover {
+    background-color: #f3722c;
+}
+
+main {
+    background-color: #fff3b0;
+}
+
+table {
+    border: 1px solid #f9c74f;
+}
+
+th {
+    background-color: #f9c74f;
+    color: #fff;
+}
+
+tr:nth-child(even) {
+    background-color: #fce38a;
+}
+
+button.addBtn {
+    background-color: #90be6d;
+}
+
+button.addBtn:hover {
+    background-color: #66bb6a;
+}
+
+button.editBtn {
+    background-color: #577590;
+}
+
+button.editBtn:hover {
+    background-color: #3d5a80;
+}
+
+button.deleteBtn {
+    background-color: #f94144;
+}
+
+button.deleteBtn:hover {
+    background-color: #f3722c;
+}
+
+.word-card, .meaning-card {
+    background-color: #f9c74f;
+    color: #333;
+}
+
+.word-card-selected {
+    border: 3px solid #f3722c !important;
+}
+
+.card, table, input, button {
+    border-radius: 8px;
+    transition: background 0.3s, color 0.3s;
+}

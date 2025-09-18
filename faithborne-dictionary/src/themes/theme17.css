@@ -1,0 +1,65 @@
+body {
+    background-color: #f0e68c; /* Light yellow background */
+    color: #333; /* Dark text color */
+    font-family: 'Arial', sans-serif; /* Font style */
+}
+
+header {
+    background-color: #f9c74f; /* Header background color */
+    color: #fff; /* Header text color */
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+nav button {
+    background-color: #f9c74f; /* Button background color */
+    color: #fff; /* Button text color */
+}
+
+nav button:hover {
+    background-color: #f9844a; /* Button hover color */
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    background-color: #f9c74f; /* Table header background color */
+    color: #fff; /* Table header text color */
+}
+
+tr:nth-child(even) {
+    background-color: #fce38a; /* Even row background color */
+}
+
+tr.highlight {
+    background-color: #ffafcc; /* Highlighted row color */
+}
+
+button.editBtn {
+    background-color: #f9c74f; /* Edit button color */
+}
+
+button.editBtn:hover {
+    background-color: #f9844a; /* Edit button hover color */
+}
+
+button.deleteBtn {
+    background-color: #f94144; /* Delete button color */
+}
+
+button.deleteBtn:hover {
+    background-color: #f3722c; /* Delete button hover color */
+}
+
+.word-card, .meaning-card {
+    background-color: rgba(255, 255, 255, 0.9); /* Card background color */
+    border: 2px solid #f9c74f; /* Card border color */
+}
+
+.word-card-selected {
+    border: 3px solid #f94144; /* Selected card border color */
+}

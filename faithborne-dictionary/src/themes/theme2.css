@@ -1,0 +1,54 @@
+body {
+    background-color: #f0f8ff; /* Alice Blue */
+    color: #333;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+header {
+    background-color: #4682b4; /* Steel Blue */
+    color: white;
+    text-align: center;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+nav button {
+    background-color: #5f9ea0; /* Cadet Blue */
+    color: white;
+}
+
+nav button:hover {
+    background-color: #3cb371; /* Medium Sea Green */
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    background-color: #4682b4; /* Steel Blue */
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #e0ffff; /* Light Cyan */
+}
+
+.word-card, .meaning-card {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    transition: background 0.3s, color 0.3s;
+}
+
+button.addBtn {
+    background-color: #20b2aa; /* Light Sea Green */
+}
+
+button.addBtn:hover {
+    background-color: #2e8b57; /* Sea Green */
+}
+
+.hidden {
+    display: none;
+}

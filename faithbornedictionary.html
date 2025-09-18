@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Faithborne Dictionary</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f7fa;
+    background-size: cover;
+    background-position: center;
+    transition: background 0.5s ease;
+    color:#333;
+}
+header {text-align:center; padding:20px; background:#4facfe; color:white; box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+header h1 {margin:0; font-size:2em;}
+nav {text-align:center; margin:15px;}
+nav button {margin:5px; padding:10px 15px; border:none; border-radius:6px; cursor:pointer; background:#0078ff; color:white;}
+nav button:disabled {background:#ccc; color:#888; cursor:not-allowed;}
+nav button:hover:enabled {background:#005fcc;}
+main {padding:20px; max-width:1000px; margin:auto;}
+.controls {display:flex; flex-wrap:wrap; gap:10px; margin-bottom:15px; align-items:center;}
+input, button {padding:8px; border-radius:6px; border:1px solid #ccc; font-size:1em;}
+button.addBtn {background:#28a745; color:white; border:none;}
+button.addBtn:hover {background:#1e7e34;}
+button.loginBtn {background:#f39c12; color:white; border:none;}
+button.loginBtn:hover {background:#d35400;}
+button.logoutBtn {background:#e74c3c; color:white; border:none;}
+button.logoutBtn:hover {background:#c0392b;}
+table {width:100%; border-collapse:collapse; margin-top:10px;}
+th, td {padding:10px; text-align:left; border-bottom:1px solid #ccc;}
+th {background:#0078ff; color:white;}
+tr:nth-child(even) {background:#f2f2f2;}
+tr.highlight {background-color:#ffff99;}
+button.editBtn {background:#007bff; color:white; border:none; padding:5px 10px; margin-right:5px;}
+button.editBtn:hover {background:#0056b3;}
+button.saveBtn {background:#28a745; color:white; border:none; padding:5px 10px; margin-right:5px;}
+button.saveBtn:hover {background:#1e7e34;}
+button.deleteBtn {background:#ff4b5c; color:white; border:none; padding:5px 10px;}
+button.deleteBtn:hover {background:#c0392b;}
+button.exportBtn {background:#6c5ce7; color:white; border:none; padding:8px 15px; margin-top:10px; margin-right:5px;}
+button.exportBtn:hover {background:#341f97;}
+.hidden {display:none;}
+.word-card, .meaning-card {position:relative;}
+.word-card-selected {border:3px solid yellow !important;}
+.card, table, input, button {
+    background-color: rgba(255,255,255,0.85);
+    color: #333;
+    border-radius: 8px;
+    transition: background 0.3s, color 0.3s;
+}
+.dark-text { color: white; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📖 Faithborne Dictionary</h1>
+</header>
+
+<!-- Site-wide theme controls -->
+<div style="margin:10px; text-align:center;">
+  <label style="color:#333;">🌈 Site Theme: </label>
+  <input type="file" accept="image/*" onchange="uploadTheme(event)">
+  <button onclick="resetTheme()">Reset Theme</button>
+</div>
+
+<nav>
+  <button id="addWordsBtn" onclick="showPage('inputPage')">➕ Add Words</button>
+  <button id="viewEntriesBtn" onclick="showPage('entriesPage')" disabled>📂 View Entries</button>
+  <button id="gamesBtn" onclick="showPage('gamesPage')" disabled>🎮 Games</button>
+</nav>
+
+<main id="inputPage">
+  <div class="controls">
+    <button id="loginBtn" class="loginBtn" onclick="googleLogin()">Login with Google</button>
+    <button id="logoutBtn" class="logoutBtn hidden" onclick="logout()">Logout</button>
+    <span id="userName" style="margin-left:10px; font-weight:bold;"></span>
+  </div>
+  <h2>Add a New Word</h2>
+  <div class="controls">
+    <input type="text" id="word" placeholder="Enter word...">
+    <input type="text" id="meaning" placeholder="Enter meaning...">
+    <button class="addBtn" onclick="addWord()">Add</button>
+  </div>
+  <h3>🔍 Quick Search</h3>
+  <div class="controls">
+    <input type="text" id="searchInputPage" placeholder="Search word or meaning..." oninput="quickSearch()">
+  </div>
+  <ul id="quickResults"></ul>
+</main>
+
+<main id="entriesPage" class="hidden">
+  <h2>📂 Dictionary Entries</h2>
+  <div class="controls">
+    <input type="text" id="entriesSearch" placeholder="Search word or meaning..." oninput="renderEntries()">
+  </div>
+  <table id="entriesTable">
+    <thead>
+      <tr>
+        <th>Word</th>
+        <th>Meaning</th>
+        <th>Inputer</th>
+        <th>Date & Time</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button class="exportBtn" onclick="exportData('csv')">⬇ Export CSV</button>
+  <button class="exportBtn" onclick="exportData('pdf')">⬇ Export PDF</button>
+</main>
+
+<!-- GAMES PAGE -->
+<main id="gamesPage" class="hidden">
+  <h2 style="text-align:center; color:#6c5ce7;">🎮 Dictionary Games Hub</h2>
+  <div style="margin:10px; text-align:center;">
+    <label style="color:white;">🎨 Set Games Background: </label>
+    <input type="file" id="bgUpload" accept="image/*">
+    <button onclick="setCustomBackground()">Apply</button>
+  </div>
+  <div class="games-container" style="display:flex; flex-direction:column; gap:20px; align-items:center; justify-content:center; min-height:80vh; 
+      background: linear-gradient(to top, #8ecae6, #219ebc); 
+      background-image: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1350&q=80'); 
+      background-size: cover; background-position: center; padding:20px; border-radius:12px;">
+    <button class="addBtn" onclick="startGame('matching')">🔤 Match Word with Meaning</button>
+    <button class="addBtn" onclick="startGame('quiz')">❓ Multiple Choice Quiz</button>
+    <button class="addBtn" onclick="startGame('typing')">⌨️ Typing Challenge</button>
+  </div>
+  <div id="gameScreen" class="hidden" style="margin-top:20px;"></div>
+  <button id="backFromGame" class="logoutBtn hidden" onclick="backToGames()" style="margin-top:20px;">⬅ Back to Games Hub</button>
+  <h3 style="color:#6c5ce7;">Leaderboard</h3>
+  <ul id="leaderboardList"></ul>
+</main>
+
+<script>
+let currentGame = null;
+let leaderboard = {};
+let sampleWords = [
+    {word:"Euphoria", meaning:"A feeling of intense happiness"},
+    {word:"Serendipity", meaning:"Finding something good by chance"},
+    {word:"Ephemeral", meaning:"Lasting for a very short time"},
+    {word:"Melancholy", meaning:"A feeling of deep sadness"},
+    {word:"Luminous", meaning:"Emitting light"},
+    {word:"Apple", meaning:"A fruit"},
+    {word:"Ocean", meaning:"Large body of water"},
+    {word:"Sun", meaning:"The star at the center of our solar system"},
+    {word:"Tree", meaning:"A plant with a trunk and branches"},
+    {word:"Book", meaning:"A set of pages with information or story"}
+];
+
+// ----- Sound Effects -----
+const correctSound = new Audio("https://www.soundjay.com/button/sounds/button-4.mp3");
+const wrongSound = new Audio("https://www.soundjay.com/button/sounds/button-10.mp3");
+
+// ----- Custom Background for Games -----
+function setCustomBackground(){
+  const file = document.getElementById("bgUpload").files[0];
+  if(!file) return Swal.fire("Select a file first!", "", "info");
+  const reader = new FileReader();
+  reader.onload = function(e){
+    document.querySelector(".games-container").style.backgroundImage = `url('${e.target.result}')`;
+  }
+  reader.readAsDataURL(file);
+}
+
+// ----- Site-wide Theme -----
+let currentTheme = null;
+function setTheme(url){
+    document.body.style.backgroundImage = `url('${url}')`;
+    currentTheme = url;
+}
+function resetTheme(){
+    document.body.style.backgroundImage = '';
+    currentTheme = null;
+}
+function uploadTheme(event){
+    const file = event.target.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = e => setTheme(e.target.result);
+        reader.readAsDataURL(file);
+    }
+}
+
+// ----- Get 5 random words from both sampleWords and user entries -----
+function getGameWords() {
+    let arr = [...sampleWords];
+    if (cachedEntries && cachedEntries.length > 0) {
+        arr = arr.concat(
+            cachedEntries
+                .filter(e => e.word && e.meaning)
+                .map(e => ({ word: e.word, meaning: e.meaning }))
+        );
+    }
+    arr = arr.filter((v, i, a) => v.word && v.meaning && a.findIndex(t => t.word === v.word && t.meaning === v.meaning) === i);
+    arr.sort(() => Math.random() - 0.5);
+    return arr.slice(0, 5);
+}
+
+function startGame(gameType){
+    if(!currentUser){
+        Swal.fire("Login first to play!", "", "warning");
+        return;
+    }
+    currentGame = gameType;
+    document.querySelector(".games-container").classList.add("hidden");
+    document.getElementById("backFromGame").classList.remove("hidden");
+    const screen = document.getElementById("gameScreen");
+    screen.classList.remove("hidden");
+    screen.innerHTML = ""; // reset
+
+    if(gameType==="matching"){
+        setupMatchingGame(screen);
+    } else if(gameType==="typing"){
+        setupTypingGame(screen);
+    } else if(gameType==="quiz"){
+        setupQuizGame(screen);
+    }
+}
+
+function backToGames(){
+    document.getElementById("gameScreen").classList.add("hidden");
+    document.querySelector(".games-container").classList.remove("hidden");
+    document.getElementById("backFromGame").classList.add("hidden");
+    currentGame = null;
+}
+
+// ----- MATCHING GAME -----
+function setupMatchingGame(container){
+    container.innerHTML = "<h3 style='color:#fff; text-shadow:1px1px2px#000;'>Match Word to Meaning!</h3>";
+    container.style.display="flex";
+    container.style.flexDirection="column";
+    container.style.alignItems="center";
+
+    const wordsArr = getGameWords();
+    let shuffledWords = [...wordsArr].sort(()=>Math.random()-0.5);
+    let shuffledMeanings = [...wordsArr].sort(()=>Math.random()-0.5);
+    let score = 0;
+
+    // Score display
+    const scoreDiv = document.createElement("div");
+    scoreDiv.style.color = "white";
+    scoreDiv.style.fontSize = "1.2em";
+    scoreDiv.style.margin = "10px";
+    scoreDiv.innerHTML = `Score: <span id="score">${score}</span> 🪙 | Word 1 of ${wordsArr.length}`;
+    container.appendChild(scoreDiv);
+
+    let selectedWord = null;
+
+    const board = document.createElement("div");
+    board.style.display="flex";
+    board.style.flexWrap="wrap";
+    board.style.justifyContent="center";
+    board.style.marginTop="20px";
+    container.appendChild(board);
+
+    shuffledWords.forEach((w, idx)=>{
+        const card = document.createElement("div");
+        card.textContent = w.word;
+        card.style.cssText = "width:120px;height:50px;margin:8px;background:#800080;color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;";
+        card.onclick = ()=>{
+            selectedWord = w.word;
+            board.querySelectorAll(".word-card-selected").forEach(el=>el.classList.remove("word-card-selected"));
+            card.classList.add("word-card-selected");
+        }
+        card.classList.add("word-card");
+        board.appendChild(card);
+    });
+
+    shuffledMeanings.forEach((m, idx)=>{
+        const drop = document.createElement("div");
+        drop.textContent = m.meaning;
+        drop.dataset.word = m.word;
+        drop.style.cssText = "width:250px;height:50px;margin:8px;background:#fff;color:#333;font-weight:bold;border:2px dashed #800080;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;";
+        drop.onclick = ()=>{
+            if(!selectedWord) return Swal.fire("Select a word first!","","info");
+            if(selectedWord === drop.dataset.word){
+                drop.style.background="#28a745"; drop.style.color="white"; drop.textContent=`✅ ${m.meaning}`;
+                correctSound.play();
+                score++;
+            } else {
+                drop.style.background="#ff4b5c"; drop.style.color="white";
+                wrongSound.play();
+            }
+            scoreDiv.innerHTML = `Score: <span id="score">${score}</span> 🪙 | Word ${idx+2 > wordsArr.length ? wordsArr.length : idx+2} of ${wordsArr.length}`;
+            updateLeaderboard(currentUser.displayName, score, 'matching');
+            selectedWord = null;
+            board.querySelectorAll(".word-card-selected").forEach(el=>el.classList.remove("word-card-selected"));
+        }
+        drop.classList.add("meaning-card");
+        board.appendChild(drop);
+    });
+
+    // Play Again Button
+    const playAgainBtn = document.createElement("button");
+    playAgainBtn.textContent="🔄 Play Again";
+    playAgainBtn.className="addBtn";
+    playAgainBtn.style.margin="10px";
+    playAgainBtn.onclick = ()=>setupMatchingGame(container);
+    container.appendChild(playAgainBtn);
+}
+
+// ----- TYPING GAME -----
+function setupTypingGame(container){
+    container.innerHTML = "<h3 style='color:#fff; text-shadow:1px1px2px#000;'>⌨️ Typing Challenge!</h3>";
+    container.style.display="flex";
+    container.style.flexDirection="column";
+    container.style.alignItems="center";
+
+    let words = getGameWords();
+    let index = 0;
+    let score = 0;
+    let startTime = Date.now();
+    let times = [];
+
+    // Score and timer display
+    const scoreDiv = document.createElement("div");
+    scoreDiv.style.margin = "10px";
+    scoreDiv.style.color = "white";
+    scoreDiv.style.fontSize = "1.2em";
+    scoreDiv.innerHTML = `Score: <span id="score">${score}</span> 🪙 | Word 1 of ${words.length} | Time: 0s`;
+    container.appendChild(scoreDiv);
+
+    const promptDiv = document.createElement("div");
+    promptDiv.style.margin = "15px 0";
+    promptDiv.style.fontSize = "1.5em";
+    promptDiv.style.color = "#ffeb3b";
+    promptDiv.textContent = words[index].meaning;
+    container.appendChild(promptDiv);
+
+    const input = document.createElement("input");
+    input.placeholder="Type the word here...";
+    input.style.padding="8px";
+    input.style.fontSize="1.1em";
+    input.style.marginBottom="10px";
+    container.appendChild(input);
+
+    const submitBtn = document.createElement("button");
+    submitBtn.textContent = "Submit";
+    submitBtn.style.marginLeft = "10px";
+    submitBtn.className = "addBtn";
+    container.appendChild(submitBtn);
+
+    // Timer interval
+    let timer = setInterval(()=>{
+        const elapsed = ((Date.now() - startTime)/1000).toFixed(1);
+        scoreDiv.innerHTML = `Score: <span id="score">${score}</span> 🪙 | Word ${index+1} of ${words.length} | Time: ${elapsed}s`;
+    },100);
+
+    submitBtn.onclick = processWord;
+    input.addEventListener("keypress", e => {if(e.key==="Enter") processWord();});
+
+    function processWord(){
+        const typed = input.value.trim();
+        const timeTaken = (Date.now() - startTime)/1000;
+        times.push(timeTaken);
+
+        if(typed.toLowerCase() === words[index].word.toLowerCase()){
+            const speedScore = Math.max(10 - timeTaken, 1);
+            score += Math.round(10 + speedScore);
+            promptDiv.style.color = "#28a745";
+        } else {
+            promptDiv.style.color = "#ff4b5c";
+        }
+
+        index++;
+        input.value = "";
+        startTime = Date.now();
+
+        if(index < words.length){
+            promptDiv.textContent = words[index].meaning;
+            promptDiv.style.color = "#ffeb3b";
+        } else {
+            clearInterval(timer);
+            const totalTime = times.reduce((a,b)=>a+b,0).toFixed(2);
+            const avgTime = (totalTime / words.length).toFixed(2);
+            promptDiv.textContent = `Game Over! Score: <span id="score">${score}</span> 🪙 | Total time: ${totalTime}s | Avg: ${avgTime}s`;
+            updateLeaderboard(currentUser.displayName, score, 'typing');
+
+            const playAgainBtn = document.createElement("button");
+            playAgainBtn.textContent = "🔄 Play Again";
+            playAgainBtn.style.marginTop = "10px";
+            playAgainBtn.className = "addBtn";
+            playAgainBtn.onclick = () => setupTypingGame(container);
+            container.appendChild(playAgainBtn);
+        }
+    }
+}
+
+// ----- QUIZ GAME -----
+function setupQuizGame(container){
+    container.innerHTML = "<h3 style='color:#fff; text-shadow:1px1px2px#000;'>❓ Multiple Choice Quiz!</h3>";
+    container.style.display="flex";
+    container.style.flexDirection="column";
+    container.style.alignItems="center";
+
+    let score = 0;
+    let index = 0;
+    let words = getGameWords();
+
+    const scoreDiv = document.createElement("div");
+    scoreDiv.style.color = "white";
+    scoreDiv.style.fontSize = "1.2em";
+    scoreDiv.style.margin = "10px";
+    scoreDiv.innerHTML = `Score: <span id="score">${score}</span> 🪙 | Question 1 of ${words.length}`;
+    container.appendChild(scoreDiv);
+
+    function nextQuestion(){
+        if(index >= words.length){
+            container.innerHTML = `<h3 style='color:#fff;'>Quiz Over!</h3>
+                                   <p style='color:#ffeb3b;'>Your Score: <span id="score">${score}</span> 🪙</p>`;
+            updateLeaderboard(currentUser.displayName, score, 'quiz');
+            const playAgainBtn = document.createElement("button");
+            playAgainBtn.textContent = "🔄 Play Again";
+            playAgainBtn.className = "addBtn";
+            playAgainBtn.onclick = () => setupQuizGame(container);
+            container.appendChild(playAgainBtn);
+            return;
+        }
+
+        container.querySelectorAll('h3, ul').forEach(el=>el.remove());
+        const question = document.createElement("h4");
+        question.style.color = "#ffeb3b";
+        question.style.textShadow = "1px 1px 2px #000";
+        question.textContent = `What is the meaning of "${words[index].word}"?`;
+        container.insertBefore(question, scoreDiv.nextSibling);
+
+        const ul = document.createElement("ul");
+        ul.style.listStyle="none";
+        ul.style.padding=0;
+        ul.style.width="300px";
+        ul.style.textAlign="center";
+        container.appendChild(ul);
+
+        let choices = getGameWords().sort(()=>Math.random()-0.5).slice(0,3);
+        if(!choices.find(c=>c.word===words[index].word)) choices[0]=words[index];
+        choices.sort(()=>Math.random()-0.5);
+
+        choices.forEach(c=>{
+            const li = document.createElement("li");
+            li.textContent = c.meaning;
+            li.style.cursor = "pointer";
+            li.style.padding = "8px";
+            li.style.border = "1px solid #fff";
+            li.style.borderRadius = "6px";
+            li.style.margin = "5px";
+            li.style.background = "#6c5ce7";
+            li.style.color = "#fff";
+            li.addEventListener("click", ()=>{
+                if(c.word === words[index].word){
+                    score += 1;
+                    li.style.background = "#28a745";
+                } else {
+                    li.style.background = "#ff4b5c";
+                    Array.from(ul.children).forEach(opt=>{
+                        if(opt.textContent===words[index].meaning) opt.style.background="#28a745";
+                    });
+                }
+                scoreDiv.innerHTML = `Score: <span id="score">${score}</span> 🪙 | Question ${index+1} of ${words.length}`;
+                setTimeout(()=>{
+                    index++;
+                    nextQuestion();
+                },800);
+            });
+            ul.appendChild(li);
+        });
+    }
+
+    nextQuestion();
+}
+
+// ----- UPDATED LEADERBOARD -----
+function updateLeaderboard(username, score, gameType='general'){
+    if(!leaderboard[gameType]) leaderboard[gameType] = [];
+    leaderboard[gameType].push({user: username, score: score, time: new Date().toLocaleString()});
+    leaderboard[gameType].sort((a,b)=>b.score-a.score);
+
+    const list = document.getElementById("leaderboardList");
+    list.innerHTML = `<h4 style='color:#fff;'>${gameType.toUpperCase()} Leaderboard</h4>`;
+    leaderboard[gameType].forEach(entry=>{
+        const li = document.createElement("li");
+        li.textContent = `${entry.user}: ${entry.score} (${entry.time})`;
+        li.style.color = "#ffeb3b";
+        list.appendChild(li);
+    });
+}
+
+// ====== MAIN DICTIONARY CODE ======
+const firebaseConfig = {
+    apiKey: "AIzaSyA8zo-TcHmbaIw7bYbgDUhdgaGlGHwu-gU",
+    authDomain: "faithborne-dictionary.firebaseapp.com",
+    projectId: "faithborne-dictionary",
+    storageBucket: "faithborne-dictionary.firebasestorage.app",
+    messagingSenderId: "838717277435",
+    appId: "1:838717277435:web:d600591e699b90031d9c5e",
+    measurementId: "G-WKWCLEFZH7"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+let currentUser = null;
+let sortConfig = { key: 'timestamp', direction: 'desc' };
+let lastAddedEntryId = null;
+let cachedEntries = [];
+
+// Auth functions
+function googleLogin(){
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+    .then(result=>{
+        currentUser = result.user;
+        document.getElementById("userName").textContent = currentUser.displayName;
+        document.getElementById("loginBtn").classList.add("hidden");
+        document.getElementById("logoutBtn").classList.remove("hidden");
+        document.getElementById("viewEntriesBtn").disabled = false;
+        document.getElementById("gamesBtn").disabled = false;
+        Swal.fire("Logged in!", `Welcome, ${currentUser.displayName}!`, "success");
+    }).catch(err=>Swal.fire("Login failed", err.message, "error"));
+}
+function logout(){
+    auth.signOut().then(()=>{
+        currentUser=null;
+        document.getElementById("userName").textContent="";
+        document.getElementById("loginBtn").classList.remove("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+        document.getElementById("viewEntriesBtn").disabled = true;
+        document.getElementById("gamesBtn").disabled = true;
+        Swal.fire("Logged out","You have been logged out.","info");
+    });
+}
+function showPage(id){
+    document.getElementById("inputPage").classList.add("hidden");
+    document.getElementById("entriesPage").classList.add("hidden");
+    document.getElementById("gamesPage").classList.add("hidden");
+    document.getElementById(id).classList.remove("hidden");
+    if(id==='entriesPage') renderEntries();
+}
+
+// Add word
+function addWord(){
+    if(!currentUser) return Swal.fire("Please login first","","warning");
+    const word=document.getElementById("word").value.trim();
+    const meaning=document.getElementById("meaning").value.trim();
+    if(!word||!meaning) return Swal.fire("Enter both word and meaning","","info");
+    const timestamp=new Date().toLocaleString();
+    db.collection("entries").add({word, meaning, inputer: currentUser.displayName, timestamp})
+    .then(docRef=>{
+        lastAddedEntryId=docRef.id;
+        Swal.fire("Word saved!", `✅ Word saved successfully, ${currentUser.displayName}!`,"success");
+        document.getElementById("word").value="";
+        document.getElementById("meaning").value="";
+        if(!document.getElementById("entriesPage").classList.contains("hidden")) renderEntries();
+    }).catch(err=>Swal.fire("Error saving word", err.message,"error"));
+}
+
+// Quick search
+function quickSearch(){
+    const query=document.getElementById("searchInputPage").value.toLowerCase();
+    const list=document.getElementById("quickResults");
+    list.innerHTML="";
+    cachedEntries.forEach(data=>{
+        if(data.word.toLowerCase().includes(query)||data.meaning.toLowerCase().includes(query)){
+            const li=document.createElement("li");
+            li.textContent=`${data.word} → ${data.meaning}`;
+            list.appendChild(li);
+        }
+    });
+}
+
+// Render entries table
+function renderEntries(){
+    const tbody=document.querySelector("#entriesTable tbody");
+    const query=document.getElementById("entriesSearch").value.toLowerCase();
+    tbody.innerHTML="";
+    let entries=cachedEntries.filter(e=>e.word.toLowerCase().includes(query)||e.meaning.toLowerCase().includes(query));
+
+    entries.sort((a,b)=>{
+        let valA=a[sortConfig.key]||'';
+        let valB=b[sortConfig.key]||'';
+        if(sortConfig.key==='timestamp'){valA=new Date(valA); valB=new Date(valB);}
+        else {valA=valA.toString().toLowerCase(); valB=valB.toString().toLowerCase();}
+        if(valA<valB) return sortConfig.direction==='asc'? -1:1;
+        if(valA>valB) return sortConfig.direction==='asc'? 1:-1;
+        return 0;
+    });
+
+    entries.forEach(entry=>{
+        const row=document.createElement("tr");
+        if(entry.id===lastAddedEntryId) row.classList.add("highlight");
+        row.innerHTML=`
+        <td contenteditable="false">${entry.word}</td>
+        <td contenteditable="false">${entry.meaning}</td>
+        <td contenteditable="false">${entry.inputer}</td>
+        <td>${entry.timestamp}</td>
+        <td>
+          <button class="editBtn" onclick="editRow(this,'${entry.id}')">Edit</button>
+          <button class="deleteBtn" onclick="deleteEntry('${entry.id}')">Delete</button>
+        </td>`;
+        tbody.appendChild(row);
+        if(entry.id===lastAddedEntryId){
+            setTimeout(()=>row.classList.remove("highlight"),3000);
+        }
+    });
+    updateSortIndicators();
+}
+
+// Edit/Delete
+function editRow(btn,id){
+    const row=btn.closest("tr");
+    const tds=row.querySelectorAll("td");
+    if(btn.textContent==="Edit"){
+        for(let i=0;i<3;i++) tds[i].contentEditable="true";
+        btn.textContent="Save";
+        btn.classList.remove("editBtn");
+        btn.classList.add("saveBtn");
+    } else {
+        db.collection("entries").doc(id).update({
+            word: tds[0].textContent.trim(),
+            meaning: tds[1].textContent.trim(),
+            inputer: tds[2].textContent.trim(),
+            timestamp:new Date().toLocaleString()
+        });
+        for(let i=0;i<3;i++) tds[i].contentEditable="false";
+        btn.textContent="Edit";
+        btn.classList.remove("saveBtn");
+        btn.classList.add("editBtn");
+    }
+}
+
+function deleteEntry(id){
+    Swal.fire({
+        title:"Delete this entry?",
+        text:"This action cannot be undone.",
+        icon:"warning",
+        showCancelButton:true,
+        confirmButtonText:"Delete",
+        cancelButtonText:"Cancel"
+    }).then(result=>{
+        if(result.isConfirmed){
+            db.collection("entries").doc(id).delete();
+            Swal.fire("Deleted!","Entry has been deleted.","success");
+        }
+    });
+}
+
+// Column sorting
+const headers=document.querySelectorAll("#entriesTable th");
+const keys=['word','meaning','inputer','timestamp'];
+headers.forEach((th,index)=>{
+    if(index<4){
+        th.style.cursor="pointer";
+        th.addEventListener("click",()=>{
+            if(sortConfig.key===keys[index]) sortConfig.direction=sortConfig.direction==='asc'?'desc':'asc';
+            else {sortConfig.key=keys[index]; sortConfig.direction='asc';}
+            renderEntries();
+        });
+    }
+});
+function updateSortIndicators(){
+    headers.forEach((th,index)=>{
+        th.textContent=th.textContent.replace(/ ↑| ↓/g,'');
+        if(index<4 && sortConfig.key===keys[index]) th.textContent += sortConfig.direction==='asc'?' ↑':' ↓';
+    });
+}
+
+// Export CSV / PDF
+function exportData(type){
+    const data=cachedEntries.map(e=>[e.word,e.meaning,e.inputer,e.timestamp]);
+    if(type==='csv'){
+        let csv="Word,Meaning,Inputer,Date & Time\n";
+        data.forEach(d=>{csv+=d.join(",")+"\n";});
+        const link=document.createElement("a");
+        link.href=encodeURI("data:text/csv;charset=utf-8,"+csv);
+        link.download="faithborne_dictionary.csv";
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    } else if(type==='pdf'){
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18); doc.text("Faithborne Dictionary",14,22);
+        doc.autoTable({head:[["Word","Meaning","Inputer","Date & Time"]],body:data,startY:30});
+        doc.save("faithborne_dictionary.pdf");
+    }
+}
+
+// Auto-sync Firestore
+db.collection("entries").orderBy("timestamp","desc").onSnapshot(snapshot=>{
+    cachedEntries=[];
+    snapshot.forEach(doc=>{
+        cachedEntries.push({id:doc.id,...doc.data()});
+    });
+    if(!document.getElementById("entriesPage").classList.contains("hidden")) renderEntries();
+});
+</script>
+
+</body>
+</html>
