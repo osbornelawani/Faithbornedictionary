@@ -822,7 +822,7 @@ db.collection("entries").orderBy("timestamp","desc").onSnapshot(snapshot=>{
     if(!document.getElementById("inputPage").classList.contains("hidden")) quickSearch();
 });
 </script>
-<script>
+
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js')
@@ -830,9 +830,6 @@ if ('serviceWorker' in navigator) {
     .catch(err => console.log('Service Worker registration failed: ', err));
 }
 </script>
-
-
-
-
 </body>
 </html>
+

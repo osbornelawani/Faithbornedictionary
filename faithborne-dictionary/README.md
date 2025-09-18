@@ -1,43 +1,36 @@
 # Faithborne Dictionary
 
 ## Overview
-Faithborne Dictionary is a web application that allows users to add words, view entries, and play educational games. The application is designed to be user-friendly and visually appealing, with multiple themes available for customization.
+Faithborne Dictionary is a web app for adding words, viewing entries, and playing vocabulary games. It’s designed to be user-friendly and visually appealing, with theme customization and simple gameplay to help users learn vocabulary.
+
+## Quick links
+- View source (HTML file in the repo):  
+  `DICTIONARY/faithborne-dictionary/faithbornedictionary.html`
+
+- Repository Issues:  
+  https://github.com/osbornelawani/Faithbornedictionary/issues
+
+### Preview (temporary — no Pages required)
+Use this for a quick browser preview (uses raw.githack to render the raw HTML).  
+**Note:** This uses the `main` branch. If your branch is different, see notes below.
+
+[Open Faithborne Dictionary (preview)](https://raw.githack.com/osbornelawani/Faithbornedictionary/main/DICTIONARY/faithborne-dictionary/faithbornedictionary.html)
+
+### Live site (GitHub Pages)
+If you enable GitHub Pages for this repository, the permanent published URL (when Pages is set to the repository root) will be:
+
+`https://osbornelawani.github.io/Faithbornedictionary/DICTIONARY/faithborne-dictionary/faithbornedictionary.html`
+
+---
 
 ## Features
-- **Add Words**: Users can add new words along with their meanings.
-- **View Entries**: Users can view all the words and their meanings in a structured format.
-- **Games**: The application includes interactive games to enhance vocabulary learning.
-- **Custom Themes**: Users can upload their own images to create custom themes, in addition to the 20 built-in themes.
+- **Add Words** — Add new words with meanings (saved to Firestore).
+- **View Entries** — Browse and search dictionary entries.
+- **Games** — Matching, typing, and quiz games to practice vocabulary.
+- **Themes** — Built-in themes and ability to upload custom theme images.
+- **Export** — Export entries to CSV or PDF.
 
-## Built-in Themes
-The application comes with 20 built-in themes, each defined in separate CSS files located in the `src/themes` directory. These themes can be easily applied to change the appearance of the application.
-
-## Getting Started
-1. **Clone the Repository**: 
-   ```
-   git clone <repository-url>
-   ```
-2. **Navigate to the Project Directory**:
-   ```
-   cd faithborne-dictionary
-   ```
-3. **Install Dependencies**:
-   ```
-   npm install
-   ```
-4. **Run the Application**:
-   Open `src/faithbornedictionary.html` in a web browser.
-
-## Usage
-- To add a word, navigate to the "Add Words" section and fill in the required fields.
-- To view entries, click on the "View Entries" button.
-- To play games, go to the "Games" section and select a game to start.
-
-## Custom Themes
-For instructions on how to use custom themes, including adding new theme images, refer to the `src/custom-themes/README.md` file.
-
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+## Running locally
+1. Clone the repository:
+```bash
+git clone https://github.com/osbornelawani/Faithbornedictionary.git
