@@ -1,22 +1,30 @@
-const CACHE_NAME = 'dictionary-cache-v1';
+const CACHE_NAME = 'dictionary-cache-v3';
 const urlsToCache = [
-  '/Faithbornedictionary/DICTIONARY/faithborne-dictionary/faithbornedictionary.html',
-  '/Faithbornedictionary/DICTIONARY/pics/1.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/2.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/3.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/4.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/5.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/6.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/7.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/8.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/9.jpg',
-  '/Faithbornedictionary/DICTIONARY/pics/10.jpg'
+  './faithbornedictionary.html',
+  '../pics/1.jpg',
+  '../pics/2.jpg',
+  '../pics/3.jpg',
+  '../pics/4.jpg',
+  '../pics/5.jpg',
+  '../pics/6.jpg',
+  '../pics/7.jpg',
+  '../pics/8.jpg',
+  '../pics/9.jpg',
+  '../pics/10.jpg'
 ];
 
 // Install event
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(
+        urlsToCache.map(url =>
+          cache.add(url).catch(err => {
+            console.warn('Skipping file (not cached):', url, err);
+          })
+        )
+      )
+    )
   );
 });
 
